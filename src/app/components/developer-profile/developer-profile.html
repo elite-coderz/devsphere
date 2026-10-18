@@ -1,0 +1,29 @@
+<p>developer-profile works!</p>
+
+<a routerLink="/home">← Back to feed</a>
+
+@if (developer(); as dev) {
+  <section class="profile-card">
+    <div class="profile-avatar">
+      {{ dev.name.charAt(0) }}
+    </div>
+
+    <h1>{{ dev.name }}</h1>
+    <p>{{ dev.handle }}</p>
+    <p>{{ dev.bio }}</p>
+
+    <p><strong>{{ dev.followers }}</strong> followers</p>
+
+    <div class="skills">
+      @for (skill of dev.skills; track skill) {
+        <span class="skill-tag">{{ skill }}</span>
+      }
+    </div>
+
+    <button (click)="toggleFollow()">
+      {{ dev.following ? 'Following' : 'Follow' }}
+    </button>
+  </section>
+} @else {
+  <p>Developer not found.</p>
+}

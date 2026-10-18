@@ -1,0 +1,120 @@
+<div class="app-shell">
+  <header class="topbar">
+    <a class="brand" href="#">
+      <span class="brand-mark">D</span>
+      <span>DevSphere</span>
+    </a>
+
+    <input class="search" type="search" placeholder="Search developers, topics, posts..." [value]="searchText()"
+      (input)="searchText.set($any($event.target).value)" />
+
+    <div class="topbar-user">
+      <span class="notification">♧</span>
+      <span class="avatar avatar-purple">PK</span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <p class="section-label">MENU</p>
+
+      <button class="nav-item active">⌂ <span>Home</span></button>
+      <button class="nav-item">⌕ <span>Explore</span></button>
+      <button class="nav-item">▶ <span>Tutorials</span></button>
+      <button class="nav-item">▣ <span>Bookmarks</span></button>
+      <button class="nav-item">✉ <span>Messages</span></button>
+      <button class="nav-item">◎ <span>My Profile</span></button>
+
+      <p class="section-label community-label">YOUR COMMUNITIES</p>
+
+      <div class="community"><span class="dot dot-blue"></span> Angular</div>
+      <div class="community"><span class="dot dot-green"></span> .NET</div>
+      <div class="community"><span class="dot dot-purple"></span> AI Engineering</div>
+
+      <div class="sidebar-note">
+        <strong>Keep growing 🚀</strong>
+        <p>Learn something new. Share what you know.</p>
+      </div>
+    </aside>
+
+    <main class="feed">
+      <div class="page-heading">
+        <div>
+          <h1>Your developer feed</h1>
+          <p>Ideas, discussions and inspiration from your community.</p>
+        </div>
+        <button class="primary-button">＋ Create post</button>
+      </div>
+
+      <nav class="feed-tabs">
+        @for (tab of ['For you', 'Following', 'Trending']; track tab) {
+        <button class="feed-tab" [class.selected]="selectedFeed() === tab" (click)="selectedFeed.set(tab)">
+          {{ tab }}
+        </button>
+        }
+      </nav>
+
+
+      <form class="composer" [formGroup]="postForm" (ngSubmit)="addPost()">
+        <span class="avatar avatar-purple">PK</span>
+
+        <div class="composer-content">
+          <textarea 
+            formControlName="content"
+            placeholder="Share something you've learned..." 
+            rows="3"></textarea>
+          @if (
+          postForm.controls.content.touched &&
+          postForm.controls.content.invalid
+          ) {
+          <p class="validation-error">
+            Enter 10–280 characters before posting.
+          </p>
+          }
+
+          <div class="composer-actions">
+            <select formControlName="topic" aria-label="Post topic">
+              <option value="Angular">Angular</option>
+              <option value=".NET">.NET</option>
+              <option value="AI Engineering">AI Engineering</option>
+              <option value="System Design">System Design</option>
+            </select>
+
+            <button class="primary-button" type="submit">
+              Publish post
+            </button>
+          </div>
+        </div>
+      </form>
+      @for (post of visiblePosts(); track post.id) {
+      <app-post-card [post]="post" (likeClicked)="toggleLike($event)" 
+        (bookmarkClicked)="toggleBookmark($event)"   />
+      }
+    </main>
+
+    <aside class="right-panel">
+      <section class="panel-card">
+        <h2>🔥 Trending topics</h2>
+        @for (topic of trendingTopics; track topic.name) {
+        <div class="trending-item">
+          <div>
+            <strong>#{{ topic.name }}</strong>
+            <span>{{ topic.posts }}</span>
+          </div>
+          <span class="trending-arrow">↗</span>
+        </div>
+        }
+      </section>
+
+      <section class="panel-card">
+        <h2>✨ Your next step</h2>
+        <p class="panel-description">
+          Follow developers, join communities and share your knowledge.
+        </p>
+        <button class="secondary-button">Explore developers →</button>
+      </section>
+
+      <p class="footer-note">DevSphere · Built for developers</p>
+    </aside>
+  </div>
+</div>

@@ -1,0 +1,38 @@
+<article class="post-card">
+  <div class="post-header">
+    <span class="avatar">{{ post().avatar }}</span>
+
+    <div class="author-info">
+      <a
+        class="author-name"
+        [routerLink]="['/developer', post().authorId]"
+      >
+        <strong>{{ post().author }}</strong>
+        <span>{{ post().handle }} · {{ post().time }}</span>
+      </a>
+    </div>
+
+    <span class="topic-tag">{{ post().topic }}</span>
+  </div>
+
+  <p class="post-content">{{ post().content }}</p>
+
+  <div class="post-actions">
+    <button
+      class="action-button"
+      [class.liked]="post().liked"
+      (click)="onLike()">
+      {{ post().liked ? '♥' : '♡' }} {{ post().likes }}
+    </button>
+
+    <span>{{ post().comments }} comments</span>
+
+    <button 
+      class="action-button"
+      [class.liked]="post().bookmarked"
+      (click)="onBookmark()"
+    >
+     {{ post().bookmarked ? '★ Saved' : '☆ Save' }}
+    </button>
+  </div>
+</article>
