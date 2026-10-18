@@ -5,9 +5,14 @@
       <span>DevSphere</span>
     </a>
 
-    <input class="search" type="search" placeholder="Search developers, topics, posts..." [value]="searchText()"
-      (input)="searchText.set($any($event.target).value)" />
+    <!-- <input class="search" type="search" placeholder="Search developers, topics, posts..." [value]="searchText()"
+      (input)="searchText.set($any($event.target).value)" /> -->
 
+    <input 
+        type="search" class="search"
+        placeholder="Search posts..."
+        [formControl]="searchControl"
+    />  
     <div class="topbar-user">
       <span class="notification">♧</span>
       <span class="avatar avatar-purple">PK</span>
