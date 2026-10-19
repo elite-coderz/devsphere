@@ -26,6 +26,21 @@ export class HomeComponent implements OnInit {
   readonly isSearching = signal(false);
   readonly searchError = signal<string | null>(null);
   readonly actionError = signal<string | null>(null);
+  readonly isEditModalOpen = signal(false);
+  readonly editingPostId = signal<number | null>(null);
+
+readonly editPostForm = new FormGroup({
+  topic: new FormControl('Angular', {
+    nonNullable: true,
+    validators: [Validators.required, Validators.minLength(2),
+      Validators.maxLength(50)]
+  }),
+  content: new FormControl('', {
+    nonNullable: true,
+    validators: [Validators.required, Validators.minLength(10),
+      Validators.maxLength(280)]
+  })
+});
 
   readonly searchControl = new FormControl('', {
     nonNullable: true
@@ -33,7 +48,10 @@ export class HomeComponent implements OnInit {
 
   readonly developerService = inject(DeveloperService);
   readonly filteredPosts = computed(() => {
-  const term = this.searchText().trim().toLowerCase();
+  
+    const term = this.searchText().trim().toLowerCase();
+
+  
 
   
   if (!term) {
@@ -154,12 +172,18 @@ toggleBookmark(postId: number): void {
 }
   
 postForm = new FormGroup({
-  content: new FormControl('', [
-    Validators.required,
-    Validators.minLength(10),
-    Validators.maxLength(280)
-  ]),
-  topic: new FormControl('Angular', Validators.required)
+  content: new FormControl('', {
+    validators: [
+      Validators.required,
+      Validators.minLength(10),
+      Validators.maxLength(280)
+    ],
+    nonNullable: true
+  }),
+  topic: new FormControl('Angular', {
+    validators: Validators.required,
+    nonNullable: true
+  })
 });
 
 addPost(): void {
@@ -230,6 +254,46 @@ readonly visiblePosts = computed(() => {
 //       });
 //   }
 
+createPost(): void {
+  if (this.postForm.invalid) {
+    this.postForm.markAllAsTouched();
+    return;
+  }
+
+  const { topic, content } = this.postForm.getRawValue();
+
+  this.postService.createPost({ topic, content })
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe({
+      next: createdPost => {
+        this.posts.update(posts => [
+          createdPost,
+          ...posts
+        ]);
+
+        this.postForm.reset();
+        this.actionError.set(null);
+      },
+      error: error => {
+        console.error('Failed to create post:', error);
+        this.actionError.set(
+          'Unable to create post. Please try again.'
+        );
+      }
+    });
+}
+
+readonly isComposerOpen = signal(false);
+
+openComposer(): void {
+  this.isComposerOpen.set(true);
+}
+
+closeComposer(): void {
+  this.isComposerOpen.set(false);
+}
+
+
   ngOnInit(): void {
 
      this.postService.getPosts()
@@ -270,6 +334,81 @@ readonly visiblePosts = computed(() => {
   this.searchResultIds.set(ids);
   this.searchError.set(error);
 });
+}
+openEditPost(id: number): void {
+  const post = this.posts().find(p => p.id === id);
+
+  if (!post) {
+    return;
+  }
+
+  this.editingPostId.set(id);
+  this.editPostForm.setValue({
+    topic: post.topic,
+    content: post.content
+  });
+
+  this.isEditModalOpen.set(true);
+}
+
+closeEditPost(): void {
+  this.isEditModalOpen.set(false);
+  this.editingPostId.set(null);
+  this.editPostForm.reset({
+    topic: 'Angular',
+    content: ''
+  });
+}
+
+saveEditedPost(): void {
+  if (this.editPostForm.invalid) {
+    this.editPostForm.markAllAsTouched();
+    return;
+  }
+
+  const id = this.editingPostId();
+
+  if (id === null) {
+    return;
+  }
+
+  this.postService.updatePost(id, this.editPostForm.getRawValue())
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe({
+      next: updatedPost => {
+        this.posts.update(posts =>
+          posts.map(post =>
+            post.id === updatedPost.id ? updatedPost : post
+          )
+        );
+
+        this.closeEditPost();
+        this.actionError.set(null);
+      },
+      error: error => {
+        console.error('Failed to update post:', error);
+        this.actionError.set('Unable to update post. Please try again.');
+      }
+    });
+}
+
+deletePost(id: number): void {
+  if (!confirm('Are you sure you want to delete this post?')) {
+    return;
+  }
+
+  this.postService.deletePost(id)
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe({
+      next: () => {
+        this.posts.update(posts => posts.filter(post => post.id !== id));
+        this.actionError.set(null);
+      },
+      error: error => {
+        console.error('Failed to delete post:', error);
+        this.actionError.set('Unable to delete post. Please try again.');
+      }
+    });
 }
 }
 

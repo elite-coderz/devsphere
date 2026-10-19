@@ -131,3 +131,21 @@
   color: #6554d5;
   text-decoration: underline;
 }
+
+.post-management-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.post-management-actions button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 6px 0;
+  color: #475569;
+}
+
+.post-management-actions button:hover {
+  color: #6d28d9;
+}

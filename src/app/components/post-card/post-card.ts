@@ -26,7 +26,16 @@ onBookmark(): void {
   this.bookmarkClicked.emit(this.post().id);
 }
 
+editClicked = output<number>();
+deleteClicked = output<number>();
 
+onEdit(): void {
+  this.editClicked.emit(this.post().id);
+}
+
+onDelete(): void {
+  this.deleteClicked.emit(this.post().id);
+}
 
 }
 export type { Post };

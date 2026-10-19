@@ -1,3 +1,4 @@
+
 <div class="app-shell">
   <header class="topbar">
     <a class="brand" href="#">
@@ -5,14 +6,13 @@
       <span>DevSphere</span>
     </a>
 
-    <!-- <input class="search" type="search" placeholder="Search developers, topics, posts..." [value]="searchText()"
-      (input)="searchText.set($any($event.target).value)" /> -->
+    <input
+      type="search"
+      class="search"
+      placeholder="Search posts..."
+      [formControl]="searchControl"
+    />
 
-    <input 
-        type="search" class="search"
-        placeholder="Search posts..."
-        [formControl]="searchControl"
-    />  
     <div class="topbar-user">
       <span class="notification">♧</span>
       <span class="avatar avatar-purple">PK</span>
@@ -32,97 +32,247 @@
 
       <p class="section-label community-label">YOUR COMMUNITIES</p>
 
-      <div class="community"><span class="dot dot-blue"></span> Angular</div>
-      <div class="community"><span class="dot dot-green"></span> .NET</div>
-      <div class="community"><span class="dot dot-purple"></span> AI Engineering</div>
+      <div class="community">
+        <span class="dot dot-blue"></span> Angular
+      </div>
+      <div class="community">
+        <span class="dot dot-green"></span> .NET
+      </div>
+      <div class="community">
+        <span class="dot dot-purple"></span> AI Engineering
+      </div>
 
       <div class="sidebar-note">
         <strong>Keep growing 🚀</strong>
         <p>Learn something new. Share what you know.</p>
       </div>
     </aside>
-    
+
     <main class="feed">
       <div class="page-heading">
         <div>
           <h1>Your developer feed</h1>
           <p>Ideas, discussions and inspiration from your community.</p>
         </div>
-        <button class="primary-button">＋ Create post</button>
+
+        <button
+          type="button"
+          class="primary-button"
+          (click)="openComposer()"
+        >
+          ＋ Create post
+        </button>
       </div>
 
       <nav class="feed-tabs">
         @for (tab of ['For you', 'Following', 'Trending']; track tab) {
-        <button class="feed-tab" [class.selected]="selectedFeed() === tab" (click)="selectedFeed.set(tab)">
-          {{ tab }}
-        </button>
+          <button
+            class="feed-tab"
+            [class.selected]="selectedFeed() === tab"
+            (click)="selectedFeed.set(tab)"
+          >
+            {{ tab }}
+          </button>
         }
       </nav>
 
+      <!-- Create post modal -->
+      @if (isComposerOpen()) {
+        <div
+          class="modal-backdrop"
+          (click)="closeComposer()"
+        >
+          <section
+            class="composer-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="composer-title"
+            (click)="$event.stopPropagation()"
+          >
+            <div class="modal-header">
+              <h2 id="composer-title">Create a post</h2>
 
-      <form class="composer" [formGroup]="postForm" (ngSubmit)="addPost()">
-        <span class="avatar avatar-purple">PK</span>
+              <button
+                type="button"
+                class="close-button"
+                aria-label="Close composer"
+                (click)="closeComposer()"
+              >
+                &times;
+              </button>
+            </div>
 
+            <form
+              class="composer"
+              [formGroup]="postForm"
+              (ngSubmit)="createPost()"
+            >
+              <span class="avatar avatar-purple">PK</span>
+
+              <div class="composer-content">
+                <textarea
+                  formControlName="content"
+                  placeholder="Share something you've learned..."
+                  rows="4"
+                ></textarea>
+
+                @if (
+                  postForm.controls.content.touched &&
+                  postForm.controls.content.invalid
+                ) {
+                  <p class="validation-error">
+                    Enter 10–280 characters before posting.
+                  </p>
+                }
+
+                <div class="composer-actions">
+                  <select
+                    formControlName="topic"
+                    aria-label="Post topic"
+                  >
+                    <option value="Angular">Angular</option>
+                    <option value=".NET">.NET</option>
+                    <option value="AI Engineering">AI Engineering</option>
+                    <option value="System Design">System Design</option>
+                  </select>
+
+                  <button
+                    type="button"
+                    class="secondary-button"
+                    (click)="closeComposer()"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="submit"
+                    class="primary-button"
+                    [disabled]="postForm.invalid"
+                  >
+                    Publish post
+                  </button>
+                </div>
+
+                @if (actionError()) {
+                  <p class="error-message">{{ actionError() }}</p>
+                }
+              </div>
+            </form>
+          </section>
+        </div>
+      }
+
+      @if (isEditModalOpen()) {
+  <div class="modal-backdrop" (click)="closeEditPost()">
+    <section
+      class="composer-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="edit-post-title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="modal-header">
+        <h2 id="edit-post-title">Edit post</h2>
+
+        <button
+          type="button"
+          class="close-button"
+          aria-label="Close edit form"
+          (click)="closeEditPost()"
+        >
+          &times;
+        </button>
+      </div>
+
+      <form
+        [formGroup]="editPostForm"
+        (ngSubmit)="saveEditedPost()"
+      >
         <div class="composer-content">
-          <textarea 
+          <label for="edit-topic">Topic</label>
+          <select id="edit-topic" formControlName="topic">
+            <option value="Angular">Angular</option>
+            <option value=".NET">.NET</option>
+            <option value="AI Engineering">AI Engineering</option>
+            <option value="System Design">System Design</option>
+          </select>
+
+          <label for="edit-content">Content</label>
+          <textarea
+            id="edit-content"
             formControlName="content"
-            placeholder="Share something you've learned..." 
-            rows="3"></textarea>
+            rows="5"
+            placeholder="Edit your post..."
+          ></textarea>
+
           @if (
-          postForm.controls.content.touched &&
-          postForm.controls.content.invalid
+            editPostForm.controls.content.touched &&
+            editPostForm.controls.content.invalid
           ) {
-          <p class="validation-error">
-            Enter 10–280 characters before posting.
-          </p>
+            <p class="validation-error">
+              Enter 10–280 characters.
+            </p>
           }
 
           <div class="composer-actions">
-            <select formControlName="topic" aria-label="Post topic">
-              <option value="Angular">Angular</option>
-              <option value=".NET">.NET</option>
-              <option value="AI Engineering">AI Engineering</option>
-              <option value="System Design">System Design</option>
-            </select>
+            <button
+              type="button"
+              class="secondary-button"
+              (click)="closeEditPost()"
+            >
+              Cancel
+            </button>
 
-            <button class="primary-button" type="submit">
-              Publish post
+            <button
+              type="submit"
+              class="primary-button"
+              [disabled]="editPostForm.invalid"
+            >
+              Save changes
             </button>
           </div>
         </div>
       </form>
-      @if (actionError()) {
-        <p class="error-message">{{ actionError() }}</p>
-        }
+    </section>
+  </div>
+}
 
       @for (post of visiblePosts(); track post.id) {
-        <app-post-card [post]="post" (likeClicked)="toggleLike($event)"
-            (bookmarkClicked)="toggleBookmark($event)" />
-        } @empty {
+        <app-post-card
+          [post]="post"
+          (likeClicked)="toggleLike($event)"
+          (bookmarkClicked)="toggleBookmark($event)"
+          (editClicked)="openEditPost($event)"
+          (deleteClicked)="deletePost($event)"
+        />
+      } @empty {
         <div class="empty-state">
-            <h3>No posts found</h3>
-            <p>Try another search term or select a different feed.</p>
+          <h3>No posts found</h3>
+          <p>Try another search term or select a different feed.</p>
         </div>
-        }
-        @if (isSearching()) {
-            <p class="feed-status">Searching posts...</p>
-        }
-        @if (searchError(); as error) {
+      }
+
+      @if (isSearching()) {
+        <p class="feed-status">Searching posts...</p>
+      }
+
+      @if (searchError(); as error) {
         <p class="feed-error">{{ error }}</p>
-        }
+      }
     </main>
 
     <aside class="right-panel">
       <section class="panel-card">
         <h2>🔥 Trending topics</h2>
+
         @for (topic of trendingTopics; track topic.name) {
-        <div class="trending-item">
-          <div>
-            <strong>#{{ topic.name }}</strong>
-            <span>{{ topic.posts }}</span>
+          <div class="trending-item">
+            <div>
+              <strong>#{{ topic.name }}</strong>
+              <span>{{ topic.posts }}</span>
+            </div>
+            <span class="trending-arrow">↗</span>
           </div>
-          <span class="trending-arrow">↗</span>
-        </div>
         }
       </section>
 
