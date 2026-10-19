@@ -41,7 +41,7 @@
         <p>Learn something new. Share what you know.</p>
       </div>
     </aside>
-
+    
     <main class="feed">
       <div class="page-heading">
         <div>
@@ -91,10 +91,25 @@
           </div>
         </div>
       </form>
+      @if (actionError()) {
+        <p class="error-message">{{ actionError() }}</p>
+        }
+
       @for (post of visiblePosts(); track post.id) {
-      <app-post-card [post]="post" (likeClicked)="toggleLike($event)" 
-        (bookmarkClicked)="toggleBookmark($event)"   />
-      }
+        <app-post-card [post]="post" (likeClicked)="toggleLike($event)"
+            (bookmarkClicked)="toggleBookmark($event)" />
+        } @empty {
+        <div class="empty-state">
+            <h3>No posts found</h3>
+            <p>Try another search term or select a different feed.</p>
+        </div>
+        }
+        @if (isSearching()) {
+            <p class="feed-status">Searching posts...</p>
+        }
+        @if (searchError(); as error) {
+        <p class="feed-error">{{ error }}</p>
+        }
     </main>
 
     <aside class="right-panel">

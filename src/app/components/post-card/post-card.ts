@@ -1,21 +1,9 @@
 import { Component, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Post } from '../../models/post';
+import { Observable } from 'rxjs';
 
-export interface Post {
-  id: number;
-  authorId: number;
-  author: string;
-  handle: string;
-  avatar: string;
-  time: string;
-  topic: string;
-  content: string;
-  likes: number;
-  following: boolean;
-  comments: number;
-  liked: boolean;
-  bookmarked?: boolean;
-}
+
 
 @Component({
   selector: 'app-post-card',
@@ -38,4 +26,8 @@ onBookmark(): void {
   this.bookmarkClicked.emit(this.post().id);
 }
 
+
+
 }
+export type { Post };
+
