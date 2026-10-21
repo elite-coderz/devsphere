@@ -77,7 +77,7 @@
       </nav>
 
       <!-- Create post modal -->
-      @if (isComposerOpen()) {
+      <!-- @if (isComposerOpen()) {
         <div
           class="modal-backdrop"
           (click)="closeComposer()"
@@ -160,7 +160,13 @@
             </form>
           </section>
         </div>
-      }
+      } -->
+
+      <app-post-composer
+        [open]="isComposerOpen()"
+        (closed)="closeComposer()"
+        (submitted)="handleCreatePost($event)"
+      />
 
       @if (isEditModalOpen()) {
   <div class="modal-backdrop" (click)="closeEditPost()">

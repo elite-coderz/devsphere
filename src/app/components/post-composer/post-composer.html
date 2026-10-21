@@ -1,0 +1,74 @@
+
+@if (open()) {
+  <div class="modal-backdrop" (click)="close()">
+    <section
+      class="composer-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="composer-title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="modal-header">
+        <h2 id="composer-title">Create a post</h2>
+
+        <button
+          type="button"
+          class="close-button"
+          aria-label="Close composer"
+          (click)="close()"
+        >
+          &times;
+        </button>
+      </div>
+
+      <form [formGroup]="postForm" (ngSubmit)="publish()">
+        <div class="composer-content">
+          <label for="post-topic">Topic</label>
+
+          <select id="post-topic" formControlName="topic">
+            <option value="Angular">Angular</option>
+            <option value=".NET">.NET</option>
+            <option value="AI Engineering">AI Engineering</option>
+            <option value="System Design">System Design</option>
+          </select>
+
+          <label for="post-content">Content</label>
+
+          <textarea
+            id="post-content"
+            formControlName="content"
+            placeholder="Share something you've learned..."
+            rows="4"
+          ></textarea>
+
+          @if (
+            postForm.controls.content.touched &&
+            postForm.controls.content.invalid
+          ) {
+            <p class="validation-error">
+              Enter 10–280 characters before posting.
+            </p>
+          }
+
+          <div class="composer-actions">
+            <button
+              type="button"
+              class="secondary-button"
+              (click)="close()"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              class="primary-button"
+              [disabled]="postForm.invalid"
+            >
+              Publish post
+            </button>
+          </div>
+        </div>
+      </form>
+    </section>
+  </div>
+}

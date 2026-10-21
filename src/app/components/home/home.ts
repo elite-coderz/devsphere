@@ -7,12 +7,16 @@ import { catchError, debounceTime, distinctUntilChanged,
          finalize, map, of, startWith, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PostService } from '../../services/post.service';
+import {  PostComposerComponent,  CreatePostRequest } from '../post-composer/post-composer';
+import { PostStore } from '../../services/post-store';
+
 
 @Component({
   selector: 'app-home',
   standalone: true,
   imports: [ ReactiveFormsModule,
-    PostCardComponent],
+    PostCardComponent,
+    PostComposerComponent],
   templateUrl: './home.html',
   styleUrl: './home.css'
 })
@@ -28,6 +32,11 @@ export class HomeComponent implements OnInit {
   readonly actionError = signal<string | null>(null);
   readonly isEditModalOpen = signal(false);
   readonly editingPostId = signal<number | null>(null);
+
+  private readonly postStore = inject(PostStore);
+  readonly posts = this.postStore.posts;
+
+
 
 readonly editPostForm = new FormGroup({
   topic: new FormControl('Angular', {
@@ -67,8 +76,6 @@ readonly editPostForm = new FormGroup({
     ].some(value => value.toLowerCase().includes(term))
   );
 });
-
-readonly posts = signal<Post[]>([]);
 
   // readonly posts = signal<Post[]>([
   //   {
@@ -125,50 +132,12 @@ readonly posts = signal<Post[]>([]);
     { name: 'System Design', posts: '890 posts' }
   ];
 
-  toggleLike(postId: number): void {
-  this.actionError.set(null);
-  this.postService.toggleLike(postId)
-    .pipe(takeUntilDestroyed(this.destroyRef))
-    .subscribe({
-      next: updatedPost => {
-        this.posts.update(posts =>
-          posts.map(post =>
-            post.id === updatedPost.id
-              ? updatedPost
-              : post
-          )
-        );
-      },
-      error: error => {
-        console.error('Failed to update like:', error);
-        this.actionError.set(
-          'Unable to update like. Please try again.'
-        );
-      }
-    });
+ toggleLike(id: number): void {
+  this.postStore.toggleLike(id);
 }
 
-toggleBookmark(postId: number): void {
-  this.actionError.set(null);
-  this.postService.toggleBookmark(postId)
-    .pipe(takeUntilDestroyed(this.destroyRef))
-    .subscribe({
-      next: updatedPost => {
-        this.posts.update(posts =>
-          posts.map(post =>
-            post.id === updatedPost.id
-              ? updatedPost
-              : post
-          )
-        );
-      },
-      error: error => {
-        console.error('Failed to update bookmark:', error);
-        this.actionError.set(
-          'Unable to update bookmark. Please try again.'
-        );
-      }
-    });
+toggleBookmark(id: number): void {
+  this.postStore.toggleBookmark(id);
 }
   
 postForm = new FormGroup({
@@ -296,16 +265,18 @@ closeComposer(): void {
 
   ngOnInit(): void {
 
-     this.postService.getPosts()
-    .pipe(takeUntilDestroyed(this.destroyRef))
-    .subscribe({
-      next: posts => {
-        this.posts.set(posts);
-      },
-      error: error => {
-        console.error('Failed to load posts:', error);
-      }
-    });
+    this.postStore.loadPosts();
+    // These responsiblity is done by the PostStore service, so we don't need to handle it here anymore.
+    //  this.postService.getPosts()
+    // .pipe(takeUntilDestroyed(this.destroyRef))
+    // .subscribe({
+    //   next: posts => {
+    //     this.posts.set(posts);
+    //   },
+    //   error: error => {
+    //     console.error('Failed to load posts:', error);
+    //   }
+    // });
 
     
   this.searchControl.valueChanges.pipe(
@@ -407,6 +378,25 @@ deletePost(id: number): void {
       error: error => {
         console.error('Failed to delete post:', error);
         this.actionError.set('Unable to delete post. Please try again.');
+      }
+    });
+  }
+
+  handleCreatePost(request: CreatePostRequest): void {
+  this.actionError.set(null);
+
+  this.postService.createPost(request)
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe({
+      next: createdPost => {
+        this.posts.update(posts => [createdPost, ...posts]);
+        this.isComposerOpen.set(false);
+      },
+      error: error => {
+        console.error('Failed to create post:', error);
+        this.actionError.set(
+          'Unable to create post. Please try again.'
+        );
       }
     });
 }

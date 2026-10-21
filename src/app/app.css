@@ -1,0 +1,11 @@
+.global-loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 8px;
+  text-align: center;
+  background: #2563eb;
+  color: white;
+  z-index: 9999;
+}
